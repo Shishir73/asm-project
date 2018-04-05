@@ -20,25 +20,25 @@
 	LDI XH, 0x02						;point to the high address memory
 
 	ldi r25, 0x00						;loading data on register r25 with 0b0000_0000
-	ldi r23, 0x01						;loading data on register r26 with 0b0000_0001
+	ldi r23, 0x01						;it is the number of level
 	ldi r30, 0x08						;loading data on register r30 with 0b0000_1000
 	ldi r31, 0x08						;loading data on register r30 with 0b0000_1000
 
 	call start							;calling the start sequence
 main:
 	sequence:
-		mov r24, r23					;moves value from register23 to register24
+		mov r24, r23					;r24 is temporary memory
 		loop_load:
-			call load					;calling the sequences
+			call load					;generates the sequences
 			out porta, r16				;write to the port A
-			st X+, r16
-			call delay
+			st X+, r16					;adds to the new address
+			call delay					;wait for the led to light up
 		
 			ldi r18, 0b1111_1111		;loading the value to hide the sequence
 			out porta, r18				;write to the port A
 			call delay
 			
-		dec r24
+		dec r24							;decreasing register24 by 1
 		brne loop_load
 	
 		mov r24, r23
@@ -50,8 +50,8 @@ main:
 		mov r24, r23
 		loop_input:
 			ld r22, X+					;pointing to the next element
-			call user_input
-			cp r22, r17
+			call user_input				
+			cp r22, r17					;comparing the user's input
 			brne wrong
 			call delay
 			dec r24
@@ -75,33 +75,31 @@ end:
 		breq user_input
 		com r17
 	ret
-end1:
-	rjmp end1
 
 	wrong:
-		ldi r16, 0x0f			;0000_1111
-		out porta, r16			;write to port
+		ldi r16, 0x0f					;0000_1111
+		out porta, r16					;write to port
 		call delay
-		ldi r16, 0xf0			;1111_0000
-		out porta, r16			;write to port
+		ldi r16, 0xf0					;1111_0000
+		out porta, r16					;write to port
 		call delay
-		ldi r16, 0xff			;1111_1111
-		out porta, r16			;write to port
+		ldi r16, 0xff					;1111_1111
+		out porta, r16					;write to port
 		call delay
 	ret
 
 	load:
 		mov r28, r23
-	loop_11:
+	loop_11:							;loop for generating "random numbers"
 		inc r25
-		cp r25, r30
-		breq back_to_zero
+		cp r25, r30				
+		breq back_to_zero				;value of r25 loops between 0 and 7
 		dec r28
 		brne loop_11
 	
 		ldi r29, 0x00
-		cp r25, r29
-		breq load_1
+		cp r25, r29						;load_1 - 8 loads the value for led 1 - 8
+		breq load_1						
 
 		ldi r29, 0x01
 		cp r25, r29
